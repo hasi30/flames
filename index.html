@@ -309,7 +309,7 @@
     let key;
     if(isSpecial(n1) || isSpecial(n2)){
       const bothSpecial = isSpecial(n1) && isSpecial(n2);
-      key = bothSpecial ? 'M' : 'L';
+      key = bothSpecial ? 'L' : 'L';
     } else {
       key = computeFlames(n1, n2);
     }
