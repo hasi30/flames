@@ -250,11 +250,16 @@
   };
 
   // Hidden matching rule — not shown anywhere in the UI or exposed to the player.
-  const SPECIAL_NAMES = ['hasik','thowfika','mohamedhasik','thowfikafarhana','farhana'];
+  // Only triggers when the two names are exactly this one pair (in either order).
+  const GROUP_A = ['hasik','mohamedhasik'];
+  const GROUP_B = ['thowfika','thowfikafarhana'];
+  let specialToggle = false; // alternates the result between Love and Marriage
   function normalize(s){ return s.toLowerCase().replace(/[^a-z]/g,''); }
-  function isSpecial(n){
-    const norm = normalize(n);
-    return SPECIAL_NAMES.some(tag => norm.includes(tag));
+  function isSpecialPair(n1, n2){
+    const a = normalize(n1), b = normalize(n2);
+    const aInA = GROUP_A.includes(a), aInB = GROUP_B.includes(a);
+    const bInA = GROUP_A.includes(b), bInB = GROUP_B.includes(b);
+    return (aInA && bInB) || (aInB && bInA);
   }
 
   function computeFlames(n1, n2){
@@ -307,9 +312,9 @@
     err.style.display='none';
 
     let key;
-    if(isSpecial(n1) || isSpecial(n2)){
-      const bothSpecial = isSpecial(n1) && isSpecial(n2);
-      key = bothSpecial ? 'L' : 'M';
+    if(isSpecialPair(n1, n2)){
+      key = specialToggle ? 'M' : 'L';
+      specialToggle = !specialToggle;
     } else {
       key = computeFlames(n1, n2);
     }
