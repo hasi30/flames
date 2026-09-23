@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FLAMES 💘 Relationship Game</title>
+<style>
+  :root{
+    --bg1:#1b1030; --bg2:#3a1c56; --accent:#ff5da2; --card:#ffffff10;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%; font-family:'Segoe UI',Verdana,sans-serif;
+    background:linear-gradient(135deg,var(--bg1),var(--bg2));
+    background-size:200% 200%;
+    animation:bgshift 12s ease infinite;
+    color:#fff; overflow-x:hidden;
+    transition:background 1s ease;
+  }
+  @keyframes bgshift{
+    0%{background-position:0% 50%;}
+    50%{background-position:100% 50%;}
+    100%{background-position:0% 50%;}
+  }
+  .wrap{
+    min-height:100%;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:24px; position:relative; z-index:2;
+  }
+  h1{
+    font-size:2.4rem; margin:0 0 4px; text-align:center;
+    text-shadow:0 2px 12px rgba(0,0,0,.4);
+    letter-spacing:2px;
+  }
+  .subtitle{opacity:.85; margin-bottom:28px; text-align:center; font-size:.95rem;}
+  .card{
+    background:var(--card);
+    backdrop-filter:blur(14px);
+    border:1px solid rgba(255,255,255,.25);
+    border-radius:22px;
+    padding:32px 28px;
+    width:100%; max-width:420px;
+    box-shadow:0 12px 40px rgba(0,0,0,.35);
+  }
+  .field{margin-bottom:18px;}
+  label{display:block; margin-bottom:6px; font-size:.85rem; opacity:.9;}
+  input[type=text]{
+    width:100%; padding:14px 16px; border-radius:14px; border:none;
+    font-size:1.05rem; outline:none;
+    background:rgba(255,255,255,.92); color:#2b1140;
+  }
+  input[type=text]:focus{box-shadow:0 0 0 3px var(--accent);}
+  button{
+    width:100%; padding:15px; border:none; border-radius:14px;
+    background:linear-gradient(135deg,#ff5da2,#ff9a5a);
+    color:#fff; font-size:1.1rem; font-weight:700; letter-spacing:.5px;
+    cursor:pointer; margin-top:6px;
+    box-shadow:0 8px 24px rgba(255,93,162,.4);
+    transition:transform .15s ease;
+  }
+  button:hover{transform:translateY(-2px);}
+  button:active{transform:translateY(0);}
+  .error{color:#ffb3c1; font-size:.85rem; margin-top:8px; min-height:18px; text-align:center;}
+
+  /* RESULT VIEW */
+  .result{
+    display:none; text-align:center; position:relative; z-index:2;
+    animation:popin .5s ease;
+  }
+  @keyframes popin{from{opacity:0; transform:scale(.85);} to{opacity:1; transform:scale(1);}}
+  .icon{font-size:6rem; line-height:1; margin-bottom:6px; filter:drop-shadow(0 6px 18px rgba(0,0,0,.4));}
+  .letter{
+    font-size:1.1rem; letter-spacing:4px; opacity:.85; margin-bottom:6px; text-transform:uppercase;
+  }
+  .category{
+    font-size:3.2rem; font-weight:800; margin:0 0 10px;
+    text-shadow:0 4px 20px rgba(0,0,0,.45);
+  }
+  .desc{font-size:1.15rem; max-width:480px; margin:0 auto 26px; opacity:.95; line-height:1.5;}
+  .names{font-size:1.3rem; margin-bottom:22px; opacity:.9;}
+  .again{
+    background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.4);
+    padding:12px 26px; border-radius:30px; color:#fff; font-size:1rem;
+    cursor:pointer;
+  }
+  .again:hover{background:rgba(255,255,255,.3);}
+
+  /* floating particles */
+  .particles{position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:1;}
+  .p{
+    position:absolute; top:-10%; font-size:1.8rem; opacity:.85;
+    animation:fall linear infinite;
+  }
+  @keyframes fall{
+    0%{transform:translateY(-10vh) rotate(0deg);}
+    100%{transform:translateY(110vh) rotate(360deg);}
+  }
+</style>
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+
+<div class="wrap">
+
+  <div id="formView">
+    <h1>💘 F.L.A.M.E.S 💘</h1>
+    <div class="subtitle">Friends · Love · Affection · Marriage · Enemy · Sibling</div>
+    <div class="card">
+      <div class="field">
+        <label for="name1">Your Name</label>
+        <input type="text" id="name1" placeholder="e.g. Arjun" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="name2">Their Name</label>
+        <input type="text" id="name2" placeholder="e.g. Meera" autocomplete="off">
+      </div>
+      <button onclick="playFlames()">✨ Reveal Our Relationship ✨</button>
+      <div class="error" id="err"></div>
+    </div>
+  </div>
+
+  <div class="result" id="resultView">
+    <div class="icon" id="resIcon">💖</div>
+    <div class="letter" id="resLetter">L</div>
+    <div class="category" id="resCategory">LOVE</div>
+    <div class="names" id="resNames"></div>
+    <div class="desc" id="resDesc"></div>
+    <button class="again" onclick="reset()">🔄 Try Another Pair</button>
+  </div>
+
+</div>
+
+<script>
+const THEMES = {
+  F: {
+    name: "FRIENDS / FAMILY",
+    icon: "🤝👨‍👩‍👧‍👦",
+    desc: "You two share a bond of true friendship and family warmth — loyal, supportive, and always there for each other!",
+    colors: ["#1e3c72","#2a5298"],
+    accent: "#3ddc97",
+    particles: ["🤝","🌟","👨‍👩‍👧‍👦","😊","🌻"]
+  },
+  L: {
+    name: "LOVE",
+    icon: "❤️💘",
+    desc: "It's LOVE! Your hearts beat in rhythm — passion, romance and butterflies fill the air between you two 💕",
+    colors: ["#7f0026","#ff416c"],
+    accent: "#ff5da2",
+    particles: ["❤️","🌹","💘","💋","🌺"]
+  },
+  A: {
+    name: "AFFECTION",
+    icon: "💞🥰",
+    desc: "A sweet, caring affection blossoms between you — warm hugs, gentle care, and a soft place in each other's hearts.",
+    colors: ["#42275a","#734b6d"],
+    accent: "#e6a4d8",
+    particles: ["💞","🌸","🥰","💗","🌷"]
+  },
+  M: {
+    name: "MARRIAGE",
+    icon: "💍👰🤵",
+    desc: "Wedding bells! The stars say MARRIAGE — a lifelong journey of love, roses and togetherness awaits you both 💍",
+    colors: ["#8e0e00","#b71c1c"],
+    accent: "#ffd54f",
+    particles: ["💍","🌹","👑","💒","❤️"]
+  },
+  E: {
+    name: "ENEMY",
+    icon: "⚔️🔥",
+    desc: "Uh oh — the flames point to ENEMY! Sparks fly, but not the romantic kind. Maybe time to call a truce? 😅",
+    colors: ["#0f0f0f","#3a0000"],
+    accent: "#ff3b3b",
+    particles: ["🔥","⚔️","💢","🖤","⚡"]
+  },
+  S: {
+    name: "SIBLING",
+    icon: "👫🎀",
+    desc: "Sibling vibes! A bond of teasing, trust and unconditional support — like a sister/brother for life 👫",
+    colors: ["#f7971e","#ffd200"],
+    accent: "#ff8a00",
+    particles: ["👫","🎀","😄","🌼","🤗"]
+  }
+};
+
+function cleanName(n){
+  return n.toLowerCase().replace(/[^a-z]/g,'').split('');
+}
+
+function computeFlames(n1, n2){
+  let a = cleanName(n1);
+  let b = cleanName(n2);
+  for(let i=0;i<a.length;i++){
+    let idx = b.indexOf(a[i]);
+    if(idx !== -1){
+      a.splice(i,1);
+      b.splice(idx,1);
+      i--;
+    }
+  }
+  let n = a.length + b.length;
+  if(n === 0) n = 1;
+  let letters = ['F','L','A','M','E','S'];
+  let idx = 0;
+  while(letters.length > 1){
+    idx = (idx + n - 1) % letters.length;
+    letters.splice(idx,1);
+  }
+  return letters[0];
+}
+
+function spawnParticles(theme){
+  const container = document.getElementById('particles');
+  container.innerHTML = '';
+  const set = theme.particles;
+  for(let i=0;i<28;i++){
+    const el = document.createElement('div');
+    el.className = 'p';
+    el.textContent = set[Math.floor(Math.random()*set.length)];
+    el.style.left = Math.random()*100 + 'vw';
+    el.style.fontSize = (1 + Math.random()*1.8) + 'rem';
+    el.style.animationDuration = (5 + Math.random()*8) + 's';
+    el.style.animationDelay = (Math.random()*6) + 's';
+    el.style.opacity = 0.55 + Math.random()*0.45;
+    container.appendChild(el);
+  }
+}
+
+function playFlames(){
+  const n1 = document.getElementById('name1').value.trim();
+  const n2 = document.getElementById('name2').value.trim();
+  const err = document.getElementById('err');
+
+  if(!n1 || !n2){
+    err.textContent = "Please enter both names to continue 💌";
+    return;
+  }
+  if(!/[a-zA-Z]/.test(n1) || !/[a-zA-Z]/.test(n2)){
+    err.textContent = "Names should contain letters only.";
+    return;
+  }
+  err.textContent = "";
+
+  const letter = computeFlames(n1, n2);
+  const theme = THEMES[letter];
+
+  document.body.style.background = `linear-gradient(135deg, ${theme.colors[0]}, ${theme.colors[1]})`;
+  document.body.style.backgroundSize = "200% 200%";
+  document.documentElement.style.setProperty('--accent', theme.accent);
+
+  document.getElementById('resIcon').textContent = theme.icon;
+  document.getElementById('resLetter').textContent = letter + "  •  F L A M E S";
+  document.getElementById('resCategory').textContent = theme.name;
+  document.getElementById('resCategory').style.color = theme.accent;
+  document.getElementById('resNames').textContent = `${n1}  💫  ${n2}`;
+  document.getElementById('resDesc').textContent = theme.desc;
+
+  document.getElementById('formView').style.display = 'none';
+  document.getElementById('resultView').style.display = 'block';
+
+  spawnParticles(theme);
+}
+
+function reset(){
+  document.getElementById('formView').style.display = 'block';
+  document.getElementById('resultView').style.display = 'none';
+  document.getElementById('name1').value = '';
+  document.getElementById('name2').value = '';
+  document.getElementById('err').textContent = '';
+  document.body.style.background = '';
+  document.body.style.animation = 'bgshift 12s ease infinite';
+  document.getElementById('particles').innerHTML = '';
+}
+
+// default gentle floating hearts on load screen
+spawnParticles(THEMES.L);
+</script>
+
+</body>
+</html>
